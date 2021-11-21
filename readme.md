@@ -1,2 +1,2 @@
-#  Schedule and orders transformer
+#  Schedule and orders combiner
 
