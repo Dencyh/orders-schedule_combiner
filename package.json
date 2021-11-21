@@ -1,0 +1,17 @@
+{
+  "name": "xlsx_handler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node ./src/app.js"
+  },
+  "keywords": [],
+  "author": "Alexander Moryan <a.dencyh@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "jsontoxml": "^1.0.1",
+    "xlsx": "^0.17.3"
+  }
+}
