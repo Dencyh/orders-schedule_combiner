@@ -1,5 +1,6 @@
-const XLSX = require('xlsx')
-const fs = require('fs')
+import XLSX from 'xlsx'
+import fs from 'fs'
+import chalk from 'chalk'
 
 // Get file names
 const
@@ -27,10 +28,10 @@ filesList.forEach((fileName) => {
 })
 
 // Get orders data
-const
-    wbOrders = XLSX.readFile(`${folderPath}/${ordersFileName}`, { cellDates: true }),
-    wsOrders = wbOrders.Sheets['отчет'],
-    ordersData = XLSX.utils.sheet_to_json(wsOrders)
+const wbOrders = XLSX.readFile(`${folderPath}/${ordersFileName}`, { cellDates: true })
+const wsOrders = wbOrders.Sheets['отчет']
+
+const ordersData = XLSX.utils.sheet_to_json(wsOrders)
 
 
 // Getting unique couriers
@@ -67,7 +68,7 @@ const couriersSortedByName = couriersUnique.sort((a, b) => {
         return -1
     }
 }).filter((element) => { //gets rid of the couriers that are not in the schedule and have 0 orders
-    if (element.length < 2) console.log(element)
+    if (element.length < 2) console.log(chalk.green('Убрали из расписания: ' + item))
     return element.length > 1
 })
 
@@ -80,6 +81,21 @@ const
     wbSchedules = XLSX.readFile(`${folderPath}/${schedulesFileName}`, { cellDates: true }),
     wsSchedules = wbSchedules.Sheets['Sheet1'],
     schedulesData = XLSX.utils.sheet_to_json(wsSchedules)
+
+// Get an array of couriers from schedules and compare them to those, who have orders. Console.log missing
+const couriersFromSchedule = []
+schedulesData.forEach((sheduleInfoRow) => {
+    couriersFromSchedule.push(sheduleInfoRow['Курьер'])
+})
+
+let missingCourier = []
+
+missingCourier = couriersFromSchedule.forEach((courierFromSchedule) => {
+    if (couriers.indexOf(courierFromSchedule) < 0) console.log(chalk.red('Не получил маршрут: ' + courierFromSchedule))
+})
+
+
+
 
 // Append couriers' company name to the beggining of the row
 couriersSortedByName.forEach((courier) => {

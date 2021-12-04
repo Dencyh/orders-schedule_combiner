@@ -10,8 +10,10 @@
   "author": "Alexander Moryan <a.dencyh@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^5.0.0",
     "fs": "^0.0.1-security",
     "jsontoxml": "^1.0.1",
     "xlsx": "^0.17.3"
-  }
+  },
+  "type": "module"
 }
