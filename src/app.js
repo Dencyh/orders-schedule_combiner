@@ -68,7 +68,7 @@ const couriersSortedByName = couriersUnique.sort((a, b) => {
         return -1
     }
 }).filter((element) => { //gets rid of the couriers that are not in the schedule and have 0 orders
-    if (element.length < 2) console.log(chalk.green('Убрали из расписания: ' + item))
+    if (element.length < 2) console.log(chalk.green('Убрали из расписания: ' + element))
     return element.length > 1
 })
 
