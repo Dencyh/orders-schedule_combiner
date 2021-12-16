@@ -34,6 +34,8 @@ const wsOrders = wbOrders.Sheets['отчет']
 const ordersData = XLSX.utils.sheet_to_json(wsOrders)
 
 
+
+
 // Getting unique couriers
 const couriers = []
 
@@ -56,7 +58,12 @@ couriers.forEach((item) => {
 
 couriersUnique.forEach((courier) => {
     ordersData.forEach((orderInfo) => {
-        if (courier[0] == orderInfo['Курьер'] && (orderInfo['Статус'] == 'В процессе' || /* temp */ orderInfo['Статус'] == 'Выполнено')) {
+        if (
+            courier[0] == orderInfo['Курьер']
+            && (orderInfo['Номера посылок'].length < 3) /* Исключить курьеров возвратного потока */
+            && (orderInfo['Статус'] == 'В процессе'
+                || orderInfo['Статус'] == 'Выполнено')
+        ) {
             courier.push(orderInfo['Адрес'])
             courier.push('')
         }
