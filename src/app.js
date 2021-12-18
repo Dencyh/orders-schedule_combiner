@@ -1,5 +1,6 @@
 import XLSX from 'xlsx'
 import fs from 'fs'
+import chalk from 'chalk'
 
 // Get file names
 const
@@ -95,7 +96,7 @@ const couriersSortedByName = couriersDropships.sort((a, b) => {
         return -1
     }
 }).filter((element) => { //gets rid of the couriers that are not in the schedule and have 0 orders
-    if (element.length < 2) console.log('Нет заказов по прямому потоку : ' + element)
+    if (element.length < 2) console.log(chalk.green('Нет заказов по прямому потоку : ' + element))
     return element.length > 1
 })
 
@@ -104,7 +105,7 @@ const couriersReturnSortedByName = couriersDropshipsReturn.sort((a, b) => {
         return -1
     }
 }).filter((element) => { //gets rid of the couriers that are not in the schedule and have 0 orders
-    if (element.length < 2) console.log('Нет заказов по возвратному потоку: ' + element)
+    if (element.length < 2) console.log(chalk.green('Нет заказов по возвратному потоку: ' + element))
     return element.length > 1
 })
 
@@ -121,11 +122,11 @@ schedulesData.forEach((sheduleInfoRow) => {
 })
 
 couriersFromSchedule.forEach((courier) => {
-    if (couriersFromShifts.indexOf(courier) < 0) console.log('Не получил маршрут (заказы переназначены) : ' + courier)
+    if (couriersFromShifts.indexOf(courier) < 0) console.log(chalk.red('Не получил маршрут (заказы переназначены) : ' + courier))
 })
 
 couriersFromShifts.forEach((courier) => {
-    if (couriersFromSchedule.indexOf(courier) < 0) console.log('Убрали из расписания: ' + courier)
+    if (couriersFromSchedule.indexOf(courier) < 0) console.log(chalk.magenta('Убрали из расписания: ' + courier))
 })
 
 
