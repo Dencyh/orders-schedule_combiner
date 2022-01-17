@@ -163,6 +163,22 @@ couriersReturnSortedByName.forEach((courier) => {
     })
 })
 
+dropped.forEach(courier => {
+    schedulesData.forEach((schedule) => {
+        if (schedule['Курьер'] == courier[0]) {
+            courier.push(schedule['Компания'])
+        }
+    })
+})
+
+droppedReturn.forEach(courier => {
+    schedulesData.forEach((schedule) => {
+        if (schedule['Курьер'] == courier[0]) {
+            courier.push(schedule['Компания'])
+        }
+    })
+})
+
 
 // Sort by company (!first element) alphabetically
 const couriersSortedByCompany = couriersSortedByName.sort((a, b) => {
@@ -198,12 +214,14 @@ XLSX.utils.book_append_sheet(newWB, dropshipsReturnWS, dropshipsReturnWS_name)
 if (dropped.length > 0) {
     const droppedWS_name = 'Дропнуло Прямой поток'
     const droppedWS = XLSX.utils.aoa_to_sheet(dropped)
+    droppedWS['!cols'] = [{ wpx: 170 }, { wpx: 115 }]
     XLSX.utils.book_append_sheet(newWB, droppedWS, droppedWS_name)
 }
 
 if (droppedReturn > 0) {
     const droppedReturnWS_name = 'Дропнуло Возвратный поток'
     const droppedReturnWS = XLSX.utils.aoa_to_sheet(droppedReturn)
+    droppedReturnWS['!cols'] = [{ wpx: 170 }, { wpx: 115 }]
     XLSX.utils.book_append_sheet(newWB, droppedReturnWS, droppedReturnWS_name)
 }
 
