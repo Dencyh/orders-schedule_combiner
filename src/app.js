@@ -35,15 +35,15 @@ couriersDropshipsReturn.forEach((courier) => matchAddress(courier))
 
 const dropped = []
 /* delete dropped from the list or those  */
-const couriersSortedByName = findDropped(couriersDropships).sort(sortByChar)
+const couriersSortedByName = findDropped(couriersDropships, dropped).sort(sortByChar)
 
 
 const droppedReturn = []
-const couriersReturnSortedByName = findDropped(couriersDropshipsReturn).sort(sortByChar)
+const couriersReturnSortedByName = findDropped(couriersDropshipsReturn, droppedReturn).sort(sortByChar)
 
 
 
-// Get an array of couriers from schedules and compare them to those, who have orders. Console.log missing
+// Get an array of couriers from schedules and compare them to those, who have orders
 const couriersFromSchedule = []
 schedulesData.forEach((sheduleInfoRow) => {
     couriersFromSchedule.push(sheduleInfoRow['Курьер'])
@@ -78,7 +78,7 @@ couriersReturnSortedByCompany.unshift(['', 'ФИО', '', '', 'Адрес 1', '',
     constructor(name, data, cols = [{}]) {
         this.name = name
         this.sheet = XLSX.utils.aoa_to_sheet(data)
-        this.sheet['!cols'] = cols // Can you do that?
+        this.sheet['!cols'] = cols
     }
 }
 
@@ -163,11 +163,11 @@ function devideByType(courier) {
     }
 }
 
-function findDropped(couriers) {
+function findDropped(couriers, droppedArr) {
     return (
         couriers.filter((element) => {
             if (element.length < 2) {
-                dropped.push([element])
+                droppedArr.push([element])
             }
             return element.length > 1
         })
@@ -219,7 +219,7 @@ if (dropped.length > 0) {
     XLSX.utils.book_append_sheet(newWB, droppedWS, droppedWS_name)
 }
 
-if (droppedReturn > 0) {
+if (droppedReturn.length > 0) {
     const droppedReturnWS_name = 'Дропнуло Возвратный поток'
     const droppedReturnWS = XLSX.utils.aoa_to_sheet(droppedReturn)
     droppedReturnWS['!cols'] = [{ wpx: 170 }, { wpx: 115 }]
