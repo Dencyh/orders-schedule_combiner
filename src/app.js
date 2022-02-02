@@ -74,28 +74,6 @@ couriersSortedByCompany.unshift(['', 'ФИО', '', '', 'Адрес 1', '', 'Ад
 couriersReturnSortedByCompany.unshift(['', 'ФИО', '', '', 'Адрес 1', '', 'Адрес 2', '', 'Адрес 3', '', 'Адрес 4', '', 'Адрес 5', '', 'Адрес 6', '', 'Адрес 7', '', 'Адрес 8', '', 'Адрес 9'])
 
 
-/* class Sheet {
-    constructor(name, data, cols = [{}]) {
-        this.name = name
-        this.sheet = XLSX.utils.aoa_to_sheet(data)
-        this.sheet['!cols'] = cols
-    }
-}
-
-function createFile(sheetsArr, fileName) {
-    const wb = XLSX.utils.book_new()
-
-
-    sheetsArr.forEach((sheet) => {
-        XLSX.utils.book_append_sheet(wb, sheet.data, sheet.name)
-    })
-
-    XLSX.utils.book_append_sheet(wb, ws, wsName)
-
-
-    XLSX.writeFile(wb, `./${fileName}.xlsx`)
-} */
-
 
 
 // Helper functions
@@ -156,7 +134,9 @@ function matchAddress(courier) {
 }
 
 function devideByType(courier) {
-    if (courier['Тип транспортного средства'] == 'Дзерж Дропофф(только забор)') {
+    const carType = new RegExp(/^Дзерж Дропофф/)
+
+    if (carType.test(courier['Тип транспортного средства'])) {
         couriersDropships.push([courier['Курьер']])
     } else if (courier['Тип транспортного средства'] == 'Возврат Дзерж КГТ') {
         couriersDropshipsReturn.push([courier['Курьер']])
