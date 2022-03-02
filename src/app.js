@@ -2,16 +2,22 @@ const XLSX = require('xlsx')
 const fs = require('fs')
 
 
-const FOLDER_PATH = './Schedules_Orders'
+const SCHEDULES_ORDERS_PATH = './Schedules_Orders'
+const VEHICLES_PATH = './Vehicles'
 
 
 
 // Get file names
-const files = getFileNames(FOLDER_PATH)
+const schedulesOrders = getFileNames(SCHEDULES_ORDERS_PATH)
+const vehicles = getFileNames(VEHICLES_PATH)
+
 
 // Get orders data
-const ordersData = getData(files.orders, 'отчет')
-const schedulesData = getData(files.schedule, 'Sheet1')
+const ordersData = getData(schedulesOrders.orders, 'отчет', SCHEDULES_ORDERS_PATH)
+const schedulesData = getData(schedulesOrders.schedule, 'Sheet1', SCHEDULES_ORDERS_PATH)
+const vehiclesData = getData(vehicles.vehicles, 'Sheet1', VEHICLES_PATH)
+//console.log(vehiclesData)
+
 
 
 // Getting unique couriers
@@ -57,8 +63,12 @@ couriersFromShifts.forEach((courier) => {
 
 
 // Get info for active
+
 couriersSortedByName.forEach((courier) => insertFullInfo(courier))
 couriersReturnSortedByName.forEach((courier) => insertFullInfo(courier))
+
+
+
 
 // Get info for dropped
 dropped.forEach(courier => insertCompanyOnly(courier))
@@ -69,9 +79,11 @@ droppedReturn.forEach(courier => insertCompanyOnly(courier))
 const couriersSortedByCompany = couriersSortedByName.sort(sortByChar)
 const couriersReturnSortedByCompany = couriersReturnSortedByName.sort(sortByChar)
 
+
+findVehicle(couriersSortedByName)
 // Insert header to the result worksheet
-couriersSortedByCompany.unshift(['', 'ФИО', '', '', 'Адрес 1', '', 'Адрес 2', '', 'Адрес 3', '', 'Адрес 4', '', 'Адрес 5', '', 'Адрес 6', '', 'Адрес 7', '', 'Адрес 8', '', 'Адрес 9'])
-couriersReturnSortedByCompany.unshift(['', 'ФИО', '', '', 'Адрес 1', '', 'Адрес 2', '', 'Адрес 3', '', 'Адрес 4', '', 'Адрес 5', '', 'Адрес 6', '', 'Адрес 7', '', 'Адрес 8', '', 'Адрес 9'])
+couriersSortedByCompany.unshift(['Машина', 'Объем', 'Партнер', 'ФИО', '', '', 'Адрес 1', '', 'Адрес 2', '', 'Адрес 3', '', 'Адрес 4', '', 'Адрес 5', '', 'Адрес 6', '', 'Адрес 7', '', 'Адрес 8', '', 'Адрес 9'])
+couriersReturnSortedByCompany.unshift(['Партнер', 'ФИО', '', '', 'Адрес 1', '', 'Адрес 2', '', 'Адрес 3', '', 'Адрес 4', '', 'Адрес 5', '', 'Адрес 6', '', 'Адрес 7', '', 'Адрес 8', '', 'Адрес 9'])
 
 
 
@@ -86,6 +98,8 @@ function getFileNames(folder) {
     let orders = new RegExp(/orders*/)
 
 
+
+
     fs.readdirSync(folder).forEach(file => {
         filesList.push(file)
     });
@@ -95,15 +109,17 @@ function getFileNames(folder) {
             files.schedule = file
         } else if (orders.test(file)) {
             files.orders = file
+        } else if (file == 'VehicleSize.xlsx') {
+            files.vehicles = file
         }
     })
 
     return files
 }
 
-function getData(fileName, sheetName) {
+function getData(fileName, sheetName, folder) {
     const sheet = XLSX
-        .readFile(`${FOLDER_PATH}/${fileName}`, { cellDates: true })
+        .readFile(`${folder}/${fileName}`, { cellDates: true })
         .Sheets[sheetName]
 
     const data = XLSX.utils.sheet_to_json(sheet)
@@ -120,6 +136,8 @@ function getCouriesList(ordersData) {
     couriers = Array.from(new Set([...couriers]))
     return couriers
 }
+
+
 
 function matchAddress(courier) {
     ordersData.forEach(orderInfo => {
@@ -154,6 +172,31 @@ function findDropped(couriers, droppedArr) {
     )
 }
 
+function findVehicle(couriersArray) {
+    couriersArray.forEach(courier => {
+
+        const allVehicles = []
+        vehiclesData.forEach(vehicle => {
+            allVehicles.push(vehicle['Сцепка Имя и фамилия'])
+        })
+
+        if (allVehicles.includes(courier[1])) {
+            vehiclesData.forEach(vehicle => {
+
+                if (vehicle['Сцепка Имя и фамилия'] == courier[1]) {
+                    courier.unshift(vehicle['Объем'])
+                    courier.unshift(vehicle['Марка'])
+                    return
+                }
+
+            })
+        } else {
+            courier.unshift('')
+            courier.unshift('')
+        }
+    })
+}
+
 function insertFullInfo(courier) {
 
     schedulesData.forEach((schedule) => {
@@ -163,8 +206,13 @@ function insertFullInfo(courier) {
             courier.unshift(schedule['Компания'])
         }
     })
-
 }
+
+/* function matchVehicle() {
+    ordersData.forEach(orderInfo => {
+        if (courier[0] == )
+    })
+} */
 
 function insertCompanyOnly(courier) {
     schedulesData.forEach((schedule) => {
@@ -186,6 +234,7 @@ const newWB = XLSX.utils.book_new()
 
 const dropshipsWS_name = 'Прямой поток'
 const dropshipsWS = XLSX.utils.aoa_to_sheet(couriersSortedByCompany)
+dropshipsWS['!cols'] = [{ wpx: 120 }, { wpx: 40 }, { wpx: 80 }, { wpx: 140 }, { wpx: 75 }, { wpx: 20 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }]
 XLSX.utils.book_append_sheet(newWB, dropshipsWS, dropshipsWS_name)
 
 const dropshipsReturnWS_name = 'Возвратный поток'
