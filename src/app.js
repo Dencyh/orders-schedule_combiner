@@ -16,7 +16,7 @@ const vehicles = getFileNames(VEHICLES_PATH)
 const ordersData = getData(schedulesOrders.orders, 'отчет', SCHEDULES_ORDERS_PATH)
 const schedulesData = getData(schedulesOrders.schedule, 'Sheet1', SCHEDULES_ORDERS_PATH)
 const vehiclesData = getData(vehicles.vehicles, 'Sheet1', VEHICLES_PATH)
-//console.log(vehiclesData)
+
 
 
 
@@ -27,15 +27,18 @@ let couriersFromShifts = getCouriesList(ordersData)
 
 const couriersDropships = []
 const couriersDropshipsReturn = []
+const couriersDelivery = []
 
 /* devide delivery and return */
 schedulesData.forEach((courier) => devideByType(courier))
 
 /* match address by name */
-/* delivery */
+/* intake */
 couriersDropships.forEach(courier => matchAddress(courier))
 /* return */
 couriersDropshipsReturn.forEach((courier) => matchAddress(courier))
+/* delivery */
+couriersDelivery.forEach((courier) => matchAddress(courier))
 
 
 
@@ -46,6 +49,9 @@ const couriersSortedByName = findDropped(couriersDropships, dropped).sort(sortBy
 
 const droppedReturn = []
 const couriersReturnSortedByName = findDropped(couriersDropshipsReturn, droppedReturn).sort(sortByChar)
+
+const droppedDelivery = []
+const couriersDeliverySortedByName = findDropped(couriersDelivery, droppedDelivery).sort(sortByChar)
 
 
 
@@ -66,6 +72,7 @@ couriersFromShifts.forEach((courier) => {
 
 couriersSortedByName.forEach((courier) => insertFullInfo(courier))
 couriersReturnSortedByName.forEach((courier) => insertFullInfo(courier))
+couriersDeliverySortedByName.forEach((courier) => insertFullInfo(courier))
 
 
 
@@ -73,17 +80,21 @@ couriersReturnSortedByName.forEach((courier) => insertFullInfo(courier))
 // Get info for dropped
 dropped.forEach(courier => insertCompanyOnly(courier))
 droppedReturn.forEach(courier => insertCompanyOnly(courier))
+droppedDelivery.forEach(courier => insertCompanyOnly(courier))
 
 
 // Sort by company
 const couriersSortedByCompany = couriersSortedByName.sort(sortByChar)
 const couriersReturnSortedByCompany = couriersReturnSortedByName.sort(sortByChar)
+const couriersDeliverySortedByCompany = couriersDeliverySortedByName.sort(sortByChar)
+
 
 
 findVehicle(couriersSortedByName)
 // Insert header to the result worksheet
-couriersSortedByCompany.unshift(['Машина', 'Объем', 'Партнер', 'ФИО', '', '', 'Адрес 1', '', 'Адрес 2', '', 'Адрес 3', '', 'Адрес 4', '', 'Адрес 5', '', 'Адрес 6', '', 'Адрес 7', '', 'Адрес 8', '', 'Адрес 9'])
+couriersSortedByCompany.unshift(['Объем ТС', 'Партнер', 'ФИО', '', '', 'Адрес 1', '', 'Адрес 2', '', 'Адрес 3', '', 'Адрес 4', '', 'Адрес 5', '', 'Адрес 6', '', 'Адрес 7', '', 'Адрес 8', '', 'Адрес 9'])
 couriersReturnSortedByCompany.unshift(['Партнер', 'ФИО', '', '', 'Адрес 1', '', 'Адрес 2', '', 'Адрес 3', '', 'Адрес 4', '', 'Адрес 5', '', 'Адрес 6', '', 'Адрес 7', '', 'Адрес 8', '', 'Адрес 9'])
+couriersDeliverySortedByCompany.unshift(['Партнер', 'ФИО', '', '', 'Адрес 1', '', 'Адрес 2', '', 'Адрес 3', '', 'Адрес 4', '', 'Адрес 5', '', 'Адрес 6', '', 'Адрес 7', '', 'Адрес 8', '', 'Адрес 9'])
 
 
 
@@ -96,6 +107,7 @@ function getFileNames(folder) {
 
     let schedules = new RegExp(/schedules*/)
     let orders = new RegExp(/orders*/)
+    let orderType = new RegExp(/^TMM/)
 
 
 
@@ -140,9 +152,11 @@ function getCouriesList(ordersData) {
 
 
 function matchAddress(courier) {
+    let orderType = new RegExp(/^TMM/)
     ordersData.forEach(orderInfo => {
         if (
             courier[0] == orderInfo['Курьер']
+            && orderType.test(orderInfo['Номер заказа'])
             && (orderInfo['Статус'] == 'В процессе' || orderInfo['Статус'] == 'Выполнено')
         ) {
             courier.push(orderInfo['Адрес'])
@@ -158,10 +172,13 @@ function devideByType(courier) {
         couriersDropships.push([courier['Курьер']])
     } else if (courier['Тип транспортного средства'] == 'Возврат Дзерж КГТ') {
         couriersDropshipsReturn.push([courier['Курьер']])
+    } else if (courier['Тип транспортного средства'] == 'Ford Transit Дропофф+доставка') {
+        couriersDelivery.push([courier['Курьер']])
     }
 }
 
 function findDropped(couriers, droppedArr) {
+
     return (
         couriers.filter((element) => {
             if (element.length < 2) {
@@ -184,14 +201,12 @@ function findVehicle(couriersArray) {
             vehiclesData.forEach(vehicle => {
 
                 if (vehicle['Сцепка Имя и фамилия'] == courier[1]) {
-                    courier.unshift(vehicle['Объем'])
-                    courier.unshift(vehicle['Марка'])
+                    courier.unshift(vehicle['Объем_1'])
                     return
                 }
 
             })
         } else {
-            courier.unshift('')
             courier.unshift('')
         }
     })
@@ -234,12 +249,16 @@ const newWB = XLSX.utils.book_new()
 
 const dropshipsWS_name = 'Прямой поток'
 const dropshipsWS = XLSX.utils.aoa_to_sheet(couriersSortedByCompany)
-dropshipsWS['!cols'] = [{ wpx: 120 }, { wpx: 40 }, { wpx: 80 }, { wpx: 140 }, { wpx: 75 }, { wpx: 20 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }]
+dropshipsWS['!cols'] = [{ wpx: 60 }, { wpx: 80 }, { wpx: 140 }, { wpx: 75 }, { wpx: 20 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }, { wpx: 80 }, { wpx: 10 }]
 XLSX.utils.book_append_sheet(newWB, dropshipsWS, dropshipsWS_name)
 
 const dropshipsReturnWS_name = 'Возвратный поток'
 const dropshipsReturnWS = XLSX.utils.aoa_to_sheet(couriersReturnSortedByCompany)
 XLSX.utils.book_append_sheet(newWB, dropshipsReturnWS, dropshipsReturnWS_name)
+
+const dropshipDelivery_name = 'Совмещенные'
+const dropshipDeliveryWS = XLSX.utils.aoa_to_sheet(couriersDeliverySortedByCompany)
+XLSX.utils.book_append_sheet(newWB, dropshipDeliveryWS, dropshipDelivery_name)
 
 if (dropped.length > 0) {
     const droppedWS_name = 'Дропнуло Прямой поток'
@@ -253,6 +272,13 @@ if (droppedReturn.length > 0) {
     const droppedReturnWS = XLSX.utils.aoa_to_sheet(droppedReturn)
     droppedReturnWS['!cols'] = [{ wpx: 170 }, { wpx: 115 }]
     XLSX.utils.book_append_sheet(newWB, droppedReturnWS, droppedReturnWS_name)
+}
+
+if (dropped.length > 0) {
+    const droppedDeliveryWS_name = 'Дропнуло Совмещенные'
+    const droppedDeliveryWS = XLSX.utils.aoa_to_sheet(droppedDelivery)
+    droppedDeliveryWS['!cols'] = [{ wpx: 170 }, { wpx: 115 }]
+    XLSX.utils.book_append_sheet(newWB, droppedDeliveryWS, droppedDeliveryWS_name)
 }
 
 XLSX.writeFile(newWB, './ResultForm.xlsx')
